@@ -13,15 +13,15 @@ const int pinkyPin  = 32;
 
 // --- CALIBRATED THRESHOLDS ---
 const int THUMB_BENT_LIMIT = 85; 
-const int MID_BENT_LIMIT   = 2512; 
+const int MID_BENT_LIMIT   = 2420; 
 const int INDEX_BENT_LIMIT = 70; 
 const int PINKY_BENT_LIMIT = 70; 
 
-  
-const int THUMB_STRAIGHT_reg = 150; 
-const int INDEX_STRAIGHT_reg = 150; 
-const int MID_STRAIGHT_reg   = 2480; 
-const float TILT_THRESHOLD   = -0.90; 
+
+const int THUMB_STRAIGHT_reg = 71; 
+const int INDEX_STRAIGHT_reg = 71; 
+const int MID_STRAIGHT_reg   = 2425; 
+//const float TILT_THRESHOLD   = -0.90; 
 
 // --- MOTION, STABILITY & TIMING ---
 int prevThumb = 0;
@@ -74,7 +74,7 @@ void loop() {
   int deltaZ = abs(az_raw - prevZ);
 
   // --- GESTURE 1: SORRY (Fist + Circular Motion) ---
-  if (t < THUMB_BENT_LIMIT && m < MID_BENT_LIMIT && i < INDEX_BENT_LIMIT) {
+  if (t < THUMB_BENT_LIMIT && m < MID_BENT_LIMIT && i <= INDEX_BENT_LIMIT) {
     
     // Detect circular/rubbing motion in Y and Z axes
     if (deltaY > MOTION_SENSITIVITY && deltaZ > MOTION_SENSITIVITY) {
@@ -82,7 +82,7 @@ void loop() {
     }
 
     // Trigger when the circular motion is confirmed
-    if (circlePoints >= 4 && (millis() - lastTriggerTime > COOLDOWN)) {
+    if (circlePoints >= 5 && (millis() - lastTriggerTime > COOLDOWN)) {
       Serial.println(">>> DETECTED: SORRY (ISL)");
       SerialBT.println("SORRY");
       circlePoints = 0;
@@ -91,7 +91,7 @@ void loop() {
   }
 
   // --- GESTURE 2: NICE TO MEET YOU (Straight + 90° Tilt) ---
-  else if (accX <= TILT_THRESHOLD && 
+  else if (accX <= -0.80 && accX >=-1.0 &&
            t >= THUMB_STRAIGHT_reg && 
            i >= INDEX_STRAIGHT_reg && 
            m >= MID_STRAIGHT_reg && 
@@ -105,7 +105,7 @@ void loop() {
   }
   else if (accY <= -0.80 && accY >= -1.00 &&
       t < THUMB_BENT_LIMIT && 
-      i > INDEX_STRAIGHT_reg && 
+      i >= INDEX_STRAIGHT_reg && 
       m > MID_STRAIGHT_reg && 
       p < PINKY_BENT_LIMIT) {
     
@@ -123,13 +123,13 @@ void loop() {
   if (millis() - lastMove > 500) circlePoints = 0;
 
   // Debugging Data
-  Serial.print("T:"); Serial.print(t);
-  Serial.print(" M:"); Serial.print(m);
-  Serial.print(" AccX:"); Serial.print(accX);
-  Serial.print(" Circle:"); Serial.println(circlePoints);
-  Serial.print(" AccY:"); Serial.println(accY);
-  Serial.print("i:"); Serial.print(i);
-  Serial.print("p:"); Serial.print(p);
+  Serial.print("T: "); Serial.print(t);
+  Serial.print(" M: "); Serial.print(m);
+  Serial.print(" AccX: "); Serial.print(accX);
+  Serial.print(" Circle: "); Serial.println(circlePoints);
+  Serial.print(" AccY :"); Serial.println(accY);
+  Serial.print("i: "); Serial.print(i);
+  Serial.print("p: "); Serial.print(p);
 
   // Update previous values for next loop
   prevThumb = t;
